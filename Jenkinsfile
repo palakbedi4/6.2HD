@@ -1,29 +1,24 @@
 pipeline {
     agent any
-    
-    environment {
-        // Define a variable for the Docker image name
-        IMAGE_NAME = 'myapp/task'
-    }
-    
+
     stages {
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image
-                    echo 'Building Docker image...'
-                    
-                    sh 'docker build -t $IMAGE_NAME .'
-
+                    withEnv(["PATH+EXTRA=/usr/local/bin"]) {
+                        sh 'docker build -t react-app-image .'
+                    }
                 }
             }
         }
     }
-    
+
     post {
-        always {
-            echo 'Cleaning up the workspace...'
-            cleanWs()
+        success {
+            echo 'Docker image built successfully!'
+        }
+        failure {
+            echo 'Docker image build failed!'
         }
     }
 }
