@@ -16,17 +16,17 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    // Remove any existing container named react-app-container
-                    sh '''
-                    docker rm -f react-app-container || true
-
-                    # Run the container
-                    docker run -d -p 3000:3000 --name react-app-container react-app-image npm start
-                    docker exec react-app-container npm install
-                    docker exec react-app-container node /app/seleniumTest.js
-                    docker stop react-app-container
-                    docker rm react-app-container
-                    '''
+                    // Ensure Docker is available in the PATH and run tests
+                    withEnv(["PATH+EXTRA=/usr/local/bin"]) {
+                        sh '''
+                        docker rm -f react-app-container || true
+                        docker run -d -p 3000:3000 --name react-app-container react-app-image npm start
+                        docker exec react-app-container npm install
+                        docker exec react-app-container node /app/seleniumTest.js
+                        docker stop react-app-container
+                        docker rm react-app-container
+                        '''
+                    }
                 }
             }
         }
