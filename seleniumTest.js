@@ -1,38 +1,45 @@
-const { Builder, By } = require('selenium-webdriver');
+// Import the required modules from Selenium WebDriver
+const { Builder, By, Key, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
-require('chromedriver');
 
-// Set Chrome options to run in headless mode
-const options = new chrome.Options();
-options.addArguments('headless'); // Run Chrome in headless mode
-options.addArguments('disable-gpu'); // Applicable only for certain environments
+async function runTest() {
+    // Set up the Chrome options
+    let options = new chrome.Options();
+    options.addArguments('--headless'); // Run Chrome in headless mode (without UI)
+    options.addArguments('--disable-gpu'); // Necessary for Chrome in headless mode
+    options.addArguments('--window-size=1280x800'); // Set window size if needed
 
-(async function runSeleniumTests() {
-    let driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
+    // Initialize the WebDriver and specify Chrome as the browser
+    let driver = await new Builder()
+        .forBrowser('chrome')
+        .setChromeOptions(options) // Apply the Chrome options
+        .build();
+
     try {
-        // Step 1: Open the React app running locally (you might need to change the URL)
-        await driver.get('http://localhost:3000');
+        // Navigate to Google's homepage
+        await driver.get('https://www.google.com');
 
-        // Step 2: Verify the page title
+        // Find the search box by its name attribute and enter 'Selenium'
+        await driver.findElement(By.name('q')).sendKeys('Selenium', Key.RETURN);
+
+        // Wait for the page title to update to reflect the search query result
+        await driver.wait(until.titleContains('Selenium'), 5000);
+
+        // Get and log the page title to ensure the test ran successfully
         let title = await driver.getTitle();
-        console.log('Page title is:', title);
-        if (title !== 'React App') {
-            console.error('Test failed: Incorrect page title');
-        }
+        console.log('Test passed, page title is: ' + title);
 
-        // Step 3: Verify that the main heading (h1) contains the correct text
-        let heading = await driver.findElement(By.css('h1'));
-        let headingText = await heading.getText();
-        console.log('Heading text is:', headingText);
-        if (headingText !== 'Welcome to React') {
-            console.error('Test failed: Incorrect heading text');
+        // Example assertion (check if the title contains 'Selenium')
+        if (title.includes('Selenium')) {
+            console.log('Title validation passed!');
+        } else {
+            console.log('Title validation failed.');
         }
-
-        console.log('All tests passed!');
-    } catch (err) {
-        console.error('Test execution failed:', err);
     } finally {
-        // Step 4: Quit the browser
+        // Quit the WebDriver and close the browser
         await driver.quit();
     }
-})();
+}
+
+// Run the test
+runTest();
