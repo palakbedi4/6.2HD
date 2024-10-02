@@ -5,7 +5,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build Docker image
+                    // Build the Docker image
                     withEnv(["PATH+EXTRA=/usr/local/bin"]) {
                         sh 'docker build -t react-app-image .'
                     }
@@ -16,15 +16,14 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    // Set the correct PATH for npm
-                    withEnv(["PATH=/usr/local/bin:$PATH"]) {
-                        // Install dependencies and run Selenium tests
-                        sh '''
-                        npm install
-                        nohup npm start &
-                        node seleniumTest.js
-                        '''
-                    }
+                    // Run the tests inside the Docker container
+                    sh '''
+                    docker run -d -p 3000:3000 --name react-app-container react-app-image npm start
+                    docker exec react-app-container npm install
+                    docker exec react-app-container node seleniumTest.js
+                    docker stop react-app-container
+                    docker rm react-app-container
+                    '''
                 }
             }
         }
