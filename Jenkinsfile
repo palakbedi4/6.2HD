@@ -22,7 +22,7 @@ pipeline {
                         docker rm -f react-app-container || true
                         docker run -d -p 3000:3000 --name react-app-container react-app-image npm start
                         docker exec react-app-container npm install
-                        docker exec react-app-container node /app/seleniumTest.js
+                        docker exec react-app-container node /seleniumTest.js
                         docker stop react-app-container
                         docker rm react-app-container
                         '''
