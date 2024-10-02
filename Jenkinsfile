@@ -2,41 +2,37 @@ pipeline {
     agent any
 
     stages {
-        stage('Build and Install Dependencies') {
+        stage('Build Docker Image') {
             steps {
-                echo 'Building Docker image and installing dependencies...'
                 script {
-                    // Build Docker image and install dependencies within Docker
-                    sh '''
-                    docker build -t react-app-image .
-                    docker run --name react-app-container -d react-app-image npm install
-                    '''
+                    // Build Docker image
+                    withEnv(["PATH+EXTRA=/usr/local/bin"]) {
+                        sh 'docker build -t react-app-image .'
+                    }
                 }
             }
         }
 
-        stage('Run Tests') {
+        stage('Test') {
             steps {
                 script {
-                    // Run Selenium tests inside the container
-                    sh '''
-                    docker exec react-app-container node seleniumTest.js
-                    '''
+                    // Ensure Docker is available in the PATH and run tests
+                    withEnv(["PATH+EXTRA=/usr/local/bin"]) {
+                        sh '''
+                        docker rm -f react-app-container || true
+                        docker run -d -p 3000:3000 --name react-app-container react-app-image npm start
+                        docker exec react-app-container npm install
+                        docker exec react-app-container node /app/seleniumTest.js
+                        docker stop react-app-container
+                        docker rm react-app-container
+                        '''
+                    }
                 }
             }
         }
     }
 
     post {
-        always {
-            script {
-                // Clean up container after the tests
-                sh '''
-                docker stop react-app-container
-                docker rm react-app-container
-                '''
-            }
-        }
         success {
             echo 'Docker image built and tests ran successfully!'
         }
