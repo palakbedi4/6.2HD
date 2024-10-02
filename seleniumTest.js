@@ -1,17 +1,13 @@
+// Import the required modules from Selenium WebDriver
 const { Builder, By, Key, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
-const path = require('path');
 
 async function runTest() {
-    let service = new chrome.ServiceBuilder('/usr/local/bin/chromedriver').build();
-    chrome.setDefaultService(service);
-
-    // Set Chrome options
+    // Set up the Chrome options
     let options = new chrome.Options();
-    options.addArguments('--headless'); // Run Chrome in headless mode
-    options.addArguments('--disable-gpu'); // Disable GPU for headless mode
-    options.addArguments('--no-sandbox'); // Necessary for some environments like Docker
-    options.addArguments('--disable-dev-shm-usage'); // Overcome limited resource problems
+    options.addArguments('--headless'); // Run Chrome in headless mode (without UI)
+    options.addArguments('--disable-gpu'); // Necessary for Chrome in headless mode
+    options.addArguments('--window-size=1280x800'); // Set window size if needed
 
     // Initialize the WebDriver and specify Chrome as the browser
     let driver = await new Builder()
@@ -20,17 +16,30 @@ async function runTest() {
         .build();
 
     try {
-        // Example test: Navigate to Google
+        // Navigate to Google's homepage
         await driver.get('https://www.google.com');
+
+        // Find the search box by its name attribute and enter 'Selenium'
         await driver.findElement(By.name('q')).sendKeys('Selenium', Key.RETURN);
+
+        // Wait for the page title to update to reflect the search query result
         await driver.wait(until.titleContains('Selenium'), 5000);
-        console.log('Test passed! Title contains "Selenium"');
-    } catch (err) {
-        console.error('Test failed:', err);
+
+        // Get and log the page title to ensure the test ran successfully
+        let title = await driver.getTitle();
+        console.log('Test passed, page title is: ' + title);
+
+        // Example assertion (check if the title contains 'Selenium')
+        if (title.includes('Selenium')) {
+            console.log('Title validation passed!');
+        } else {
+            console.log('Title validation failed.');
+        }
     } finally {
-        // Quit the WebDriver instance
+        // Quit the WebDriver and close the browser
         await driver.quit();
     }
 }
 
+// Run the test
 runTest();
