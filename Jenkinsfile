@@ -2,36 +2,41 @@ pipeline {
     agent any
 
     stages {
-        /*
-        stage('Build Docker Image') {
+        stage('Build and Install Dependencies') {
             steps {
+                echo 'Building Docker image and installing dependencies...'
                 script {
-                    // Build Docker image
-                    withEnv(["PATH+EXTRA=/usr/local/bin"]) {
-                        sh 'docker build -t react-app-image .'
-                    }
+                    // Build Docker image and install dependencies within Docker
+                    sh '''
+                    docker build -t react-app-image .
+                    docker run --name react-app-container -d react-app-image npm install
+                    '''
                 }
-            }
-        }
-*/
-stage('Install Dependencies') {
-            steps {
-                echo 'Installing Node.js dependencies...'
-                sh 'npm install'
             }
         }
 
-        stage('Test') {
+        stage('Run Tests') {
             steps {
                 script {
-                    sh 'node seleniumTest.js'
-                    }
+                    // Run Selenium tests inside the container
+                    sh '''
+                    docker exec react-app-container node seleniumTest.js
+                    '''
                 }
             }
         }
-    
+    }
 
     post {
+        always {
+            script {
+                // Clean up container after the tests
+                sh '''
+                docker stop react-app-container
+                docker rm react-app-container
+                '''
+            }
+        }
         success {
             echo 'Docker image built and tests ran successfully!'
         }
