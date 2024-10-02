@@ -5,8 +5,10 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image using the Dockerfile in the project
-                    sh 'docker build -t react-app-image .'
+                    // Correct PATH handling
+                    withEnv(["PATH+EXTRA=/usr/local/bin"]) {
+                        sh 'docker build -t react-app-image .'
+                    }
                 }
             }
         }
