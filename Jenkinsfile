@@ -5,14 +5,15 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
+                    // Set environment and build Docker image
                     withEnv(["PATH+EXTRA=/usr/local/bin"]) {
                         sh 'docker build -t react-app-image .'
                     }
                 }
             }
         }
-    }
-    stage('Test') {
+
+        stage('Test') {
             steps {
                 script {
                     // Install dependencies and run Selenium tests
@@ -29,14 +30,14 @@ pipeline {
                 }
             }
         }
-
+    }
 
     post {
         success {
-            echo 'Docker image built successfully!'
+            echo 'Docker image built and tests ran successfully!'
         }
         failure {
-            echo 'Docker image build failed!'
+            echo 'Build or tests failed!'
         }
     }
 }
