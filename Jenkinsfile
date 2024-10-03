@@ -1,32 +1,38 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = 'react-app-image'
+    }
+
     stages {
+        stage('Checkout Code') {
+            steps {
+                // Checkout the repository from GitHub
+                git 'https://github.com/palakbedi4/6.2HD.git'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build Docker image
-                    withEnv(["PATH+EXTRA=/usr/local/bin"]) {
-                        sh 'docker build -t react-app-image .'
-                    }
+                    // Build the Docker image using the provided Dockerfile
+                    sh 'docker build -t $DOCKER_IMAGE .'
                 }
             }
         }
 
-        stage('Test') {
+        stage('Run Tests') {
             steps {
                 script {
-                    // Ensure Docker is available in the PATH and run tests
-                    withEnv(["PATH+EXTRA=/usr/local/bin"]) {
-                        sh '''
-                        docker rm -f react-app-container || true
-                        docker run -d -p 3000:3000 --name react-app-container react-app-image npm start
-                        docker exec react-app-container npm install
-                        docker exec react-app-container node /app/seleniumTest.js
-                        docker stop react-app-container
-                        docker rm react-app-container
-                        '''
-                    }
+                    // Start the app in a container
+                    sh 'docker run -d -p 3000:3000 --name react-app-container $DOCKER_IMAGE'
+
+                    // Install additional dependencies inside the container
+                    sh 'docker exec react-app-container npm install'
+
+                    // Run Selenium tests inside the container
+                    sh 'docker exec react-app-container node /app/seleniumTest.js'
                 }
             }
         }
@@ -34,10 +40,15 @@ pipeline {
 
     post {
         success {
-            echo 'Docker image built and tests ran successfully!'
+            echo 'Build and tests ran successfully!'
         }
         failure {
             echo 'Build or tests failed!'
+            script {
+                // Clean up the container if the build or tests fail
+                sh 'docker stop react-app-container || true'
+                sh 'docker rm react-app-container || true'
+            }
         }
     }
 }
