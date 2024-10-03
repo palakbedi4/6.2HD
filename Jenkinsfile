@@ -1,32 +1,26 @@
 pipeline {
     agent any
 
-    stages {
+    environment {
+        DOCKER_IMAGE = 'react-app-image'
+    }
+
         stage('Install Node.js') {
             steps {
-                echo 'Installing Node.js...'
-                sh '''
-                    if [ "$(uname)" = "Linux" ]; then
-                        # For Debian-based Linux
-                        if [ -f /etc/debian_version ]; then
-                            curl -sL https://deb.nodesource.com/setup_18.x | bash -
-                            apt-get install -y nodejs
-                        # For RedHat-based Linux
-                        elif [ -f /etc/redhat-release ]; then
-                            curl -sL https://rpm.nodesource.com/setup_18.x | bash -
-                            yum install -y nodejs
-                        fi
-                    elif [ "$(uname)" = "Darwin" ]; then
-                        # For MacOS
-                        brew install node
+                script {
+                    // Install Node.js only if not present
+                    sh '''
+                    if ! [ -x "$(command -v node)" ]; then
+                        echo "Node.js not found, installing..."
+                        curl -sL https://deb.nodesource.com/setup_18.x | bash -
+                        apt-get install -y nodejs
                     else
-                        echo "Unsupported OS"
-                        exit 1
+                        echo "Node.js is already installed"
                     fi
-
                     node -v
                     npm -v
-                '''
+                    '''
+                }
             }
         }
 
@@ -39,14 +33,12 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    echo 'Building Docker image...'
-                    sh 'docker build -t react-app-image .'
-                }
+                echo 'Building Docker Image...'
+                sh 'docker build -t $DOCKER_IMAGE .'
             }
         }
 
-        stage('Test') {
+        stage('Run Node Tests') {
             steps {
                 echo 'Running Selenium tests...'
                 sh 'node tests/seleniumTest.js'
