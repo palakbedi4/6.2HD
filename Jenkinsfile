@@ -43,28 +43,15 @@ pipeline {
             }
         }
 
-        stage('Run Selenium Tests') {
+        stage('Run Selenium Tests in Docker') {
             steps {
                 script {
                     echo 'Running Selenium tests...'
-                    // Install necessary dependencies for Selenium (like Chrome, ChromeDriver)
+                    // Here we run Selenium tests inside the Docker container
+                    // assuming Chrome and ChromeDriver are already installed within the image
                     sh '''
-                    apt-get update
-                    apt-get install -y wget curl unzip xvfb
-                    wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
-                    sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
-                    apt-get update
-                    apt-get install -y google-chrome-stable
-                    CHROME_VERSION=$(google-chrome --version | grep -oP '\\d+\\.\\d+\\.\\d+')
-                    wget -O /tmp/chromedriver.zip "https://chromedriver.storage.googleapis.com/$CHROME_VERSION/chromedriver_linux64.zip"
-                    unzip /tmp/chromedriver.zip -d /usr/local/bin/
-                    rm /tmp/chromedriver.zip
-                    ln -sf /usr/local/bin/chromedriver /usr/bin/chromedriver
-                    '''
-
-                    // Start the Selenium tests inside the Docker container
-                    sh '''
-                    docker exec $DOCKER_CONTAINER_NAME xvfb-run -a node tests/seleniumTest.js
+                    docker exec $DOCKER_CONTAINER_NAME npm install --only=dev
+                    docker exec $DOCKER_CONTAINER_NAME npm run selenium-test
                     '''
                 }
             }
