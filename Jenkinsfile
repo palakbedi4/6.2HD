@@ -1,5 +1,9 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'node:18' // Using a Docker image that has Node.js pre-installed
+        }
+    }
 
     environment {
         DOCKER_IMAGE = 'react-app-image'
