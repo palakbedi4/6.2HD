@@ -5,25 +5,6 @@ pipeline {
         DOCKER_IMAGE = 'react-app-image'
     }
 
-        stage('Install Node.js') {
-            steps {
-                script {
-                    // Install Node.js only if not present
-                    sh '''
-                    if ! [ -x "$(command -v node)" ]; then
-                        echo "Node.js not found, installing..."
-                        curl -sL https://deb.nodesource.com/setup_18.x | bash -
-                        apt-get install -y nodejs
-                    else
-                        echo "Node.js is already installed"
-                    fi
-                    node -v
-                    npm -v
-                    '''
-                }
-            }
-        }
-
         stage('Install Dependencies') {
             steps {
                 echo 'Installing Node.js dependencies...'
