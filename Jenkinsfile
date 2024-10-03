@@ -25,7 +25,7 @@ pipeline {
                     sh 'docker exec react-app-container npm install'
 
                     // Run Selenium tests inside the container
-                    sh 'docker exec react-app-container node /seleniumTest.js'
+                    sh 'docker exec react-app-container node tests/seleniumTest.js'
                 }
             }
         }
