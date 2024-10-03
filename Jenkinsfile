@@ -6,6 +6,13 @@ pipeline {
     }
 
     stages {
+        stage('Install Dependencies') {
+            steps {
+                echo 'Installing Node.js dependencies...'
+                sh 'npm install'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
@@ -15,18 +22,10 @@ pipeline {
             }
         }
 
-        stage('Run Tests') {
+        stage('Test') {
             steps {
-                script {
-                    // Start the app in a container
-                    sh 'docker run -d -p 3000:3000 --name react-app-container $DOCKER_IMAGE'
-
-                    // Install additional dependencies inside the container
-                    sh 'docker exec react-app-container npm install'
-
-                    // Run Selenium tests inside the container
-                    sh 'docker exec react-app-container node tests/seleniumTest.js'
-                }
+                echo 'Running Selenium tests...'
+                sh 'node tests/selenium.test.js' // Ensure that the path to your test file is correct
             }
         }
     }
@@ -37,11 +36,6 @@ pipeline {
         }
         failure {
             echo 'Build or tests failed!'
-            script {
-                // Clean up the container if the build or tests fail
-                sh 'docker stop react-app-container || true'
-                sh 'docker rm react-app-container || true'
-            }
         }
     }
 }
