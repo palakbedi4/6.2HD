@@ -6,13 +6,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout Code') {
-            steps {
-                // Checkout the repository from GitHub
-                git 'https://github.com/palakbedi4/6.2HD.git'
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
@@ -32,7 +25,7 @@ pipeline {
                     sh 'docker exec react-app-container npm install'
 
                     // Run Selenium tests inside the container
-                    sh 'docker exec react-app-container node /app/seleniumTest.js'
+                    sh 'docker exec react-app-container node /seleniumTest.js'
                 }
             }
         }
