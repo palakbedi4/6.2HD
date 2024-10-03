@@ -1,19 +1,11 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'node:18' // Node.js Docker image with npm pre-installed
+        }
+    }
 
     stages {
-        stage('Install Node.js') {
-            steps {
-                echo 'Installing Node.js...'
-                sh '''
-                curl -sL https://deb.nodesource.com/setup_18.x | bash -
-                apt-get install -y nodejs
-                node -v
-                npm -v
-                '''
-            }
-        }
-
         stage('Install Dependencies') {
             steps {
                 echo 'Installing Node.js dependencies...'
@@ -24,7 +16,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image using the provided Dockerfile
+                    echo 'Building Docker image...'
                     sh 'docker build -t react-app-image .'
                 }
             }
@@ -33,7 +25,7 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Running Selenium tests...'
-                sh 'node tests/seleniumTest.js' // Ensure that the path to your test file is correct
+                sh 'node tests/seleniumTest.js' // Ensure this path is correct
             }
         }
     }
