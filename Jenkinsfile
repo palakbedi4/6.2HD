@@ -5,6 +5,7 @@ pipeline {
         DOCKER_IMAGE = 'react-app-image'
     }
 
+    stages {
         stage('Install Dependencies') {
             steps {
                 echo 'Installing Node.js dependencies...'
