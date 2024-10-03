@@ -25,7 +25,7 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Running Selenium tests...'
-                sh 'node tests/selenium.test.js' // Ensure that the path to your test file is correct
+                sh 'node tests/seleniumTest.js' // Ensure that the path to your test file is correct
             }
         }
     }
