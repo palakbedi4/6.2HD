@@ -1,40 +1,40 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:18' // Using a Docker image that has Node.js pre-installed
-        }
-    }
-
-    environment {
-        DOCKER_IMAGE = 'react-app-image'
-    }
+    agent any
 
     stages {
-        stage('Install Dependencies') {
-            steps {
-                echo 'Installing Node.js dependencies...'
-                sh 'npm install'
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
-                echo 'Building Docker Image...'
-                sh 'docker build -t $DOCKER_IMAGE .'
+                script {
+                    // Build Docker image
+                    withEnv(["PATH+EXTRA=/usr/local/bin"]) {
+                        sh 'docker build -t react-app-image .'
+                    }
+                }
             }
         }
 
-        stage('Run Node Tests') {
+        stage('Test') {
             steps {
-                echo 'Running Selenium tests...'
-                sh 'node tests/seleniumTest.js'
+                script {
+                    // Ensure Docker is available in the PATH and run tests
+                    withEnv(["PATH+EXTRA=/usr/local/bin"]) {
+                        sh '''
+                        docker rm -f react-app-container || true
+                        docker run -d -p 3000:3000 --name react-app-container react-app-image npm start
+                        docker exec react-app-container npm install
+                        docker exec react-app-container node /app/seleniumTest.js
+                        docker stop react-app-container
+                        docker rm react-app-container
+                        '''
+                    }
+                }
             }
         }
     }
 
     post {
         success {
-            echo 'Build and tests ran successfully!'
+            echo 'Docker image built and tests ran successfully!'
         }
         failure {
             echo 'Build or tests failed!'
